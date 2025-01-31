@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import messagebox
+
 # Clase que representa una tarea
 class Tarea:
     def __init__(self, nombre, descripción):
@@ -14,36 +17,71 @@ class GestorTareas:
         nueva_tarea = Tarea(nombre, descripción)
         self.tareas.append(nueva_tarea)
 
-    def mostrar_tareas(self):  
+    def obtener_tareas(self):
         if not self.tareas:
-            print("No hay tareas pendientes.")
+            return ["No hay tareas pendientes."]
         else:
-            for i, tarea in enumerate(self.tareas):
-                print(f"{i + 1}. {tarea.nombre} - {tarea.descripción} [{tarea.estado}]")
+            return [f"{tarea.nombre} - {tarea.descripción} [{tarea.estado}]" for tarea in self.tareas]
 
-# Función principal que interactúa con el usuario
-def main():
-    gestor = GestorTareas()
+# Clase para la interfaz gráfica
+class InterfazGrafica:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Gestor de Tareas")
+        
+        self.gestor = GestorTareas()
 
-    while True:
-        print("\n--- Gestor de Tareas ---")
-        print("1. Agregar tarea")
-        print("2. Mostrar tareas")
-        print("3. Salir")
+        # Etiquetas y campos de entrada
+        self.nombre_label = tk.Label(root, text="Nombre de la tarea:")
+        self.nombre_label.pack()
+        
+        self.nombre_entry = tk.Entry(root)
+        self.nombre_entry.pack()
 
-        opcion = input("Elige una opción: ")
+        self.descripcion_label = tk.Label(root, text="Descripción de la tarea:")
+        self.descripcion_label.pack()
 
-        if opcion == "1":
-            nombre = input("Nombre de la tarea: ")
-            descripción = input("Descripción de la tarea: ")
-            gestor.agregar_tarea(nombre, descripción)
+        self.descripcion_entry = tk.Entry(root)
+        self.descripcion_entry.pack()
 
-        elif opcion == "2":
-            gestor.mostrar_tareas()
-        elif opcion == "3":
-            break
+        # Botón para agregar tarea
+        self.agregar_button = tk.Button(root, text="Agregar tarea", command=self.agregar_tarea)
+        self.agregar_button.pack()
+
+        # Lista para mostrar tareas
+        self.lista_tareas_label = tk.Label(root, text="Tareas pendientes:")
+        self.lista_tareas_label.pack()
+
+        self.lista_tareas = tk.Listbox(root)
+        self.lista_tareas.pack()
+
+        # Botón para actualizar la lista de tareas
+        self.actualizar_button = tk.Button(root, text="Actualizar lista de tareas", command=self.actualizar_lista_tareas)
+        self.actualizar_button.pack()
+
+    def agregar_tarea(self):
+        nombre = self.nombre_entry.get()
+        descripcion = self.descripcion_entry.get()
+
+        if nombre and descripcion:
+            self.gestor.agregar_tarea(nombre, descripcion)
+            self.nombre_entry.delete(0, tk.END)
+            self.descripcion_entry.delete(0, tk.END)
+            self.actualizar_lista_tareas()
         else:
-            print("Opción no válida.")
+            messagebox.showwarning("Entrada incorrecta", "Por favor, ingresa un nombre y una descripción para la tarea.")
 
+    def actualizar_lista_tareas(self):
+        # Limpiar la lista actual
+        self.lista_tareas.delete(0, tk.END)
+        
+        # Obtener las tareas actuales y mostrarlas en la lista
+        tareas = self.gestor.obtener_tareas()
+        for tarea in tareas:
+            self.lista_tareas.insert(tk.END, tarea)
+
+# Crear la ventana principal
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    interfaz = InterfazGrafica(root)
+    root.mainloop()
